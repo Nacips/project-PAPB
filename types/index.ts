@@ -1,31 +1,66 @@
+
 export interface User {
   uid: string;
   nama: string;
   email: string;
-  role: string;
+  role: 'admin' | 'warga';
+  nik?: string;
+  noHp?: string;
+  fotoProfileUrl?: string;
+  createdAt: string;
 }
 
 export interface Penduduk {
   id?: string;
   nik: string;
   nama: string;
+  tempatLahir: string;
+  tanggalLahir: string;
+  jenisKelamin: 'L' | 'P';
+  agama: string;
+  pekerjaan: string;
   alamat: string;
   noHp: string;
-  fotoKTP?: string;
-  fotoKK?: string;
+  fotoKtpUrl?: string;
+  fotoKkUrl?: string;
+  createdAt: string;
 }
 
 export interface JenisSurat {
   id?: string;
+  kodeSurat: string;
   namaSurat: string;
-  deskripsi: string;
+  persyaratan: string[];
+  templateHtml: string;
+  aktif: boolean;
+  createdAt: string;
 }
 
 export interface PermohonanSurat {
   id?: string;
-  uid: string;
-  jenisSurat: string;
+  kodePermohonan: string;
+  userId: string;
+  jenisSuratId: string;
+  namaPemohon: string;
+  nik: string;
   keperluan: string;
-  status: string;
-  tanggal: string;
+  dokumenUrls: string[];
+  status: 'pending' | 'proses' | 'disetujui' | 'ditolak';
+  nomorSurat?: string;
+  catatanAdmin?: string;
+  suratPdfUrl?: string;
+  tanggalPengajuan: string;
+  tanggalVerifikasi?: string;
+  diverifikasiOleh?: string;
+}
+
+export interface PengaturanDesa {
+  id: string;
+  namaDesa: string;
+  alamatDesa: string;
+  kecamatan: string;
+  kabupaten: string;
+  namaKepalaDesa: string;
+  nipKepalaDesa: string;
+  logoUrl: string;
 }
