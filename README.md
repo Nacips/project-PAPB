@@ -47,3 +47,6 @@
 * **Cetak Surat:**
   * Penambahan fitur *Search Bar* untuk mencari surat yang disetujui.
   * Perbaikan *Bug* Cetak: Mengatasi masalah nama menjadi "Warga", NIK menjadi "undefined", dan data Kepala Desa/Kop Surat yang tidak muncul.
+
+
+    * Perbaikan *Bug* Cetak: Mengatasi masalah nama menjadi "Warga", NIK menjadi "undefined", dan data Kepala Desa/Kop Surat yang tidak muncul.
