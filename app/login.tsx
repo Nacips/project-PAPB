@@ -1,15 +1,20 @@
 import { router } from "expo-router";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    View,
+  Alert,
+  Animated,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { Button, Text, TextInput } from "react-native-paper";
 import { auth, db } from "../config/firebase";
 
 export default function Login() {
@@ -17,6 +22,15 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [secureText, setSecureText] = useState(true);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   async function handleLogin() {
     if (email.trim() === "" || password.trim() === "") {
@@ -26,80 +40,27 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password,
-      );
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-
       const userDoc = await getDoc(doc(db, "users", user.uid));
 
-      console.log("=====================================");
-      console.log("🔍 DEBUG LOGIN");
-      console.log("=====================================");
-      console.log("UID User:", user.uid);
-      console.log("Email:", user.email);
-      console.log("Dokumen ada?", userDoc.exists());
-
       if (userDoc.exists()) {
-        const data = userDoc.data();
-        console.log("📦 SEMUA Data Firestore:", JSON.stringify(data, null, 2));
-        console.log("🔑 Field 'role' bernilai:", data.role);
-        console.log("📝 Type of role:", typeof data.role);
-
-        const role = data.role;
-
-        if (!role) {
-          console.warn("⚠️ PERINGATAN: Field 'role' TIDAK ADA di Firestore!");
-          console.warn(
-            "⚠️ Silakan tambahkan field 'role' = 'admin' di Firebase Console",
-          );
-          Alert.alert(
-            "Error Konfigurasi",
-            "Field 'role' tidak ditemukan di database. Silakan hubungi admin untuk memperbaiki data user Anda.",
-          );
-          await auth.signOut();
-          setLoading(false);
-          return;
-        }
-
-        console.log("✅ Role terdeteksi:", role);
-        console.log("=====================================");
-
-        if (role === "admin") {
-          console.log("🚀 Redirect ke: /admin/dashboard");
-          router.replace("/admin/dashboard");
-        } else if (role === "warga") {
-          console.log("🚀 Redirect ke: /warga/dashboard");
-          router.replace("/warga/dashboard");
-        } else {
-          console.error("❌ Role tidak dikenali:", role);
-          Alert.alert("Error", `Role '${role}' tidak dikenali oleh sistem.`);
+        const role = userDoc.data().role;
+        if (role === "admin") router.replace("/admin/dashboard");
+        else if (role === "warga") router.replace("/warga/dashboard");
+        else {
+          Alert.alert("Error", `Role '${role}' tidak dikenali.`);
           await auth.signOut();
         }
       } else {
-        console.error("❌ Dokumen user TIDAK DITEMUKAN di Firestore!");
         Alert.alert("Error", "Data user tidak ditemukan di database.");
         await auth.signOut();
       }
     } catch (error: any) {
-      console.error("❌ ERROR LOGIN:", error);
-      if (
-        error.code === "auth/invalid-credential" ||
-        error.code === "auth/wrong-password"
-      ) {
+      if (error.code === "auth/invalid-credential" || error.code === "auth/wrong-password") {
         Alert.alert("Login Gagal", "Email atau password salah.");
-      } else if (error.code === "auth/too-many-requests") {
-        Alert.alert(
-          "Login Gagal",
-          "Terlalu banyak percobaan. Coba lagi nanti.",
-        );
       } else {
-        Alert.alert(
-          "Login Gagal",
-          error.message || "Terjadi kesalahan. Coba lagi nanti.",
-        );
+        Alert.alert("Login Gagal", "Terjadi kesalahan. Coba lagi nanti.");
       }
     } finally {
       setLoading(false);
@@ -107,95 +68,131 @@ export default function Login() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View style={styles.content}>
-        <Text style={styles.title} variant="displaySmall">
-          Login E-Surat
-        </Text>
-        <Text style={styles.subtitle} variant="bodyMedium">
-          Masuk ke akun Anda untuk melanjutkan
-        </Text>
-
-        <TextInput
-          label="Email"
-          mode="outlined"
-          style={styles.input}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          value={email}
-          onChangeText={setEmail}
-          left={<TextInput.Icon icon="email" />}
-        />
-        <TextInput
-          label="Password"
-          mode="outlined"
-          style={styles.input}
-          secureTextEntry={secureText}
-          value={password}
-          onChangeText={setPassword}
-          left={<TextInput.Icon icon="lock" />}
-          right={
-            <TextInput.Icon
-              icon={secureText ? "eye-off" : "eye"}
-              onPress={() => setSecureText(!secureText)}
-            />
-          }
-        />
-
-        <Button
-          mode="contained"
-          onPress={handleLogin}
-          loading={loading}
-          disabled={loading}
-          style={styles.button}
-          buttonColor="#6200ee"
-        >
-          Masuk
-        </Button>
-        <Button
-          mode="text"
-          onPress={() => router.push("/lupa_password")}
-          style={styles.forgotButton}
-        >
-          Lupa Password?
-        </Button>
-
-        <View style={styles.registerContainer}>
-          <Text variant="bodyMedium">Belum punya akun? </Text>
-          <Button
-            mode="text"
-            compact
-            onPress={() => router.push("/register")}
-            textColor="#6200ee"
+    <View style={styles.container}>
+      <ImageBackground source={require("../assets/images/bg-2.jpeg")} style={styles.bgImage}>
+        <View style={styles.overlay}>
+          <KeyboardAvoidingView 
+            style={{ flex: 1 }} 
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
           >
-            Daftar di sini
-          </Button>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+              <Animated.View style={{ opacity: fadeAnim, width: "100%" }}>
+                
+                <View style={styles.header}>
+                  <Text style={styles.title}>Selamat Datang</Text>
+                  <Text style={styles.subtitle}>Masuk ke akun Anda untuk melanjutkan</Text>
+                </View>
+
+                <View style={styles.formContainer}>
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.label}>Email</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Masukkan Email Anda"
+                      placeholderTextColor="#8E8E93"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={email}
+                      onChangeText={setEmail}
+                    />
+                  </View>
+
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.label}>Kata Sandi</Text>
+                    <View style={styles.passwordContainer}>
+                      <TextInput
+                        style={styles.inputPassword}
+                        placeholder="Masukkan Kata Sandi"
+                        placeholderTextColor="#8E8E93"
+                        secureTextEntry={secureText}
+                        value={password}
+                        onChangeText={setPassword}
+                      />
+                      <TouchableOpacity onPress={() => setSecureText(!secureText)} style={styles.eyeIcon}>
+                        <Text style={{ color: "#8E8E93" }}>{secureText ? "Tampil" : "Sembunyi"}</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+
+                  <TouchableOpacity style={styles.forgotBtn} onPress={() => router.push("/lupa_password")}>
+                    <Text style={styles.forgotText}>Lupa Password?</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity 
+                    style={[styles.btn, loading && { opacity: 0.7 }]} 
+                    onPress={handleLogin} 
+                    disabled={loading}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.btnText}>{loading ? "Memproses..." : "Masuk"}</Text>
+                  </TouchableOpacity>
+
+                  <View style={styles.registerContainer}>
+                    <Text style={styles.regText}>Belum punya akun? </Text>
+                    <TouchableOpacity onPress={() => router.push("/register")}>
+                      <Text style={styles.regLink}>Daftar di sini</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  <View style={styles.reportContainer}>
+                    <Text style={styles.regText}>Ada masalah dengan NIK Anda? </Text>
+                    <TouchableOpacity onPress={() => router.push("/lapor_akun")}>
+                      <Text style={styles.reportLink}>Lapor di sini</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                </View>
+
+              </Animated.View>
+            </ScrollView>
+          </KeyboardAvoidingView>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#ffffff" },
-  content: { flex: 1, justifyContent: "center", padding: 24 },
-  title: {
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 8,
-    color: "#6200ee",
+  container: { flex: 1, backgroundColor: "#0A0A12" },
+  bgImage: { flex: 1, width: "100%", height: "100%" },
+  overlay: { flex: 1, backgroundColor: "rgba(10, 10, 18, 0.85)" },
+  scrollContent: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 30, paddingVertical: 40 },
+  
+  header: { marginBottom: 40, alignItems: "center" },
+  title: { fontSize: 28, fontFamily: "Poppins_500Medium", color: "#ffffff", marginBottom: 8 },
+  subtitle: { fontSize: 14, fontFamily: "Poppins", color: "#8E8E93" },
+  
+  formContainer: { width: "100%" },
+  inputWrapper: { marginBottom: 20 },
+  label: { color: "#D1D1D6", fontFamily: "Poppins", fontSize: 13, marginBottom: 8, marginLeft: 4 },
+  input: {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 16, paddingHorizontal: 16, paddingVertical: 16,
+    color: "#ffffff", fontFamily: "Poppins",
   },
-  subtitle: { textAlign: "center", marginBottom: 32, color: "#666666" },
-  input: { marginBottom: 16, backgroundColor: "#ffffff" },
-  button: { marginTop: 8, paddingVertical: 4, borderRadius: 8 },
-  forgotButton: { marginTop: 8 },
-  registerContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 16,
+  passwordContainer: {
+    flexDirection: "row", alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 16, paddingRight: 16,
   },
+  inputPassword: {
+    flex: 1, paddingHorizontal: 16, paddingVertical: 16,
+    color: "#ffffff", fontFamily: "Poppins",
+  },
+  eyeIcon: { padding: 4 },
+  
+  forgotBtn: { alignSelf: "flex-end", marginBottom: 30 },
+  forgotText: { color: "#D1D1D6", fontFamily: "Poppins", fontSize: 13 },
+  
+  btn: { backgroundColor: "#6200EE", paddingVertical: 16, borderRadius: 16, alignItems: "center" },
+  btnText: { color: "#ffffff", fontFamily: "Poppins_500Medium", fontSize: 16 },
+  
+  registerContainer: { flexDirection: "row", justifyContent: "center", marginTop: 30 },
+  regText: { color: "#8E8E93", fontFamily: "Poppins", fontSize: 13 },
+  regLink: { color: "#ffffff", fontFamily: "Poppins_500Medium", fontSize: 13 },
+
+  reportContainer: { flexDirection: "row", justifyContent: "center", marginTop: 15 },
+  reportLink: { color: "#fca5a5", fontFamily: "Poppins_500Medium", fontSize: 13, textDecorationLine: "underline" },
 });

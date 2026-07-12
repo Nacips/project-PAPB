@@ -1,39 +1,122 @@
-import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import { Tabs, router, usePathname } from "expo-router";
+import { Platform, StyleSheet, TouchableOpacity, View } from "react-native";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function WargaLayout() {
+  const pathname = usePathname();
+  
+  const showFAB = pathname !== "/warga/ai_warga";
+
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: "#0284c7",
-        tabBarInactiveTintColor: "#94a3b8",
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopColor: "#e5e7eb",
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 65,
-        },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
-      }}
-    >
-      <Tabs.Screen
-        name="dashboard"
-        options={{ title: "Dashboard", tabBarIcon: () => <Text style={{ fontSize: 24 }}>🏠</Text> }}
-      />
-      <Tabs.Screen
-        name="pengajuan_surat"
-        options={{ title: "Ajukan", tabBarIcon: () => <Text style={{ fontSize: 24 }}>📝</Text> }}
-      />
-      <Tabs.Screen
-        name="riwayat_surat"
-        options={{ title: "Riwayat", tabBarIcon: () => <Text style={{ fontSize: 24 }}>📋</Text> }}
-      />
-      <Tabs.Screen
-        name="profil"
-        options={{ title: "Profil", tabBarIcon: () => <Text style={{ fontSize: 24 }}>👤</Text> }}
-      />
-    </Tabs>
+    <View style={{ flex: 1 }}>
+      <Tabs
+        screenOptions={{
+          headerShown: false,
+          tabBarActiveTintColor: "#6200EE",
+          tabBarInactiveTintColor: "#94a3b8",
+          tabBarHideOnKeyboard: true,
+          tabBarStyle: styles.tabBar,
+          tabBarLabelStyle: styles.tabBarLabel,
+        }}
+      >
+        <Tabs.Screen
+          name="dashboard"
+          options={{ 
+            title: "Beranda", 
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name="home-variant-outline" size={26} color={color} />
+            ) 
+          }}
+        />
+        <Tabs.Screen
+          name="pengajuan_surat"
+          options={{ 
+            title: "Ajukan", 
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name="file-document-edit-outline" size={26} color={color} />
+            ) 
+          }}
+        />
+        <Tabs.Screen
+          name="riwayat_surat"
+          options={{ 
+            title: "Riwayat", 
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name="clock-outline" size={26} color={color} />
+            ) 
+          }}
+        />
+        <Tabs.Screen
+          name="profil"
+          options={{ 
+            title: "Profil", 
+            tabBarIcon: ({ color }) => (
+              <MaterialCommunityIcons name="account-outline" size={26} color={color} />
+            ) 
+          }}
+        />
+
+        <Tabs.Screen
+          name="status_permohonan"
+          options={{ href: null }}
+        />
+        <Tabs.Screen
+          name="download_surat"
+          options={{ href: null }}
+        />
+        
+        <Tabs.Screen
+          name="ai_warga"
+          options={{ href: null }}
+        />
+      </Tabs>
+
+      {showFAB && (
+        <TouchableOpacity 
+          style={styles.fab} 
+          onPress={() => router.push("/warga/ai_warga")}
+          activeOpacity={0.8}
+        >
+          <MaterialCommunityIcons name="robot-happy" size={28} color="#ffffff" />
+        </TouchableOpacity>
+      )}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#f8fafc",
+    paddingBottom: Platform.OS === "ios" ? 24 : 10,
+    paddingTop: 10,
+    height: Platform.OS === "ios" ? 85 : 70,
+    elevation: 10,
+    shadowColor: "#000000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: -4 },
+    shadowRadius: 10,
+  },
+  tabBarLabel: {
+    fontFamily: "Poppins_500Medium",
+    fontSize: 11,
+    marginTop: 2,
+  },
+  fab: {
+    position: "absolute",
+    bottom: Platform.OS === "ios" ? 100 : 85, 
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#6200EE",
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8,
+    shadowColor: "#6200EE",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+  }
+});

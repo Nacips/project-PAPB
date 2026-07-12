@@ -1,4 +1,3 @@
-
 export interface User {
   uid: string;
   nama: string;
@@ -36,22 +35,29 @@ export interface JenisSurat {
   createdAt: string;
 }
 
+export interface DokumenLampiran {
+  nama: string;
+  url: string;
+  tipe: 'image' | 'pdf' | 'link';
+}
+
 export interface PermohonanSurat {
   id?: string;
-  kodePermohonan: string;
-  userId: string;
-  jenisSuratId: string;
-  namaPemohon: string;
+  kode_permohonan: string;
+  user_uid: string;
+  nama_pemohon: string;
   nik: string;
+  jenis_surat_id: string;
+  nama_jenis_surat: string;
   keperluan: string;
-  dokumenUrls: string[];
+  dokumen_lampiran: DokumenLampiran[];
   status: 'pending' | 'proses' | 'disetujui' | 'ditolak';
-  nomorSurat?: string;
-  catatanAdmin?: string;
-  suratPdfUrl?: string;
-  tanggalPengajuan: string;
-  tanggalVerifikasi?: string;
-  diverifikasiOleh?: string;
+  nomor_surat?: string;
+  catatan_admin?: string;
+  surat_pdf_url?: string;
+  tanggal_pengajuan: string;
+  tanggal_verifikasi?: string;
+  diverifikasi_oleh?: string;
 }
 
 export interface PengaturanDesa {

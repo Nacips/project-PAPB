@@ -1,48 +1,91 @@
 {
   "expo": {
-    "name": "administrasidesa",
-    "slug": "administrasidesa",
+    "name": "Desaku",
+    "slug": "desaku-esurat-desa",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "administrasidesa",
+    "icon": "./assets/logo/logo-tanpa-teks-1.png",
+    "scheme": "desakuesurat",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/logo/logo-tanpa-teks-1.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#6200EE"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
+      "package": "com.papb.desaku",
+      "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "foregroundImage": "./assets/logo/logo-tanpa-teks-1.png",
+        "backgroundColor": "#6200EE"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+        "android.permission.ACCESS_MEDIA_LOCATION",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO",
+        "android.permission.READ_MEDIA_AUDIO"
+      ]
     },
     "web": {
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/logo/logo-tanpa-teks-1.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/logo/logo-tanpa-teks-1.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
+          "backgroundColor": "#6200EE"
+        }
+      ],
+      "expo-font",
+      "expo-mail-composer",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Aplikasi ini butuh akses ke galeri untuk mengubah foto profil admin.",
+          "cameraPermission": "Aplikasi ini butuh akses kamera untuk mengambil foto dokumen atau profil."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Aplikasi ini butuh akses lokasi untuk memantau data geografis desa."
+        }
+      ],
+      [
+        "expo-media-library",
+        {
+          "photosPermission": "Aplikasi membutuhkan akses untuk memindai metadata galeri.",
+          "savePhotosPermission": "Aplikasi membutuhkan hak akses penyimpanan.",
+          "isAccessMediaLocationEnabled": true
         }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "49232d3a-a741-4870-9569-1e887a262705"
+      }
     }
   }
 }

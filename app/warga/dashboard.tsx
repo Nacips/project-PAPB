@@ -1,121 +1,144 @@
 import { router } from "expo-router";
 import { signOut } from "firebase/auth";
-import { useState } from "react";
+import { doc, getDoc } from "firebase/firestore";
+import { useEffect, useState } from "react";
 import {
-    Alert,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { Card, Paragraph, Title } from "react-native-paper";
-import { auth } from "../../config/firebase";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { auth, db } from "../../config/firebase";
 
 export default function WargaDashboard() {
-  const [loading, setLoading] = useState(false);
+  const [namaUser, setNamaUser] = useState("Warga");
 
-  async function handleLogout() {
-    try {
-      console.log("Tombol logout ditekan...");
-      await signOut(auth);
-      console.log("Berhasil logout dari Firebase");
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (auth.currentUser) {
+        try {
+          const docRef = doc(db, "users", auth.currentUser.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const fullName = docSnap.data().nama || "Warga";
+            setNamaUser(fullName.split(" ")[0]); 
+          }
+        } catch (error) {
+          console.error("Gagal mengambil nama user:", error);
+        }
+      }
+    };
+    fetchUserData();
+  }, []);
 
-      router.replace("/login");
-    } catch (error) {
-      console.error("Error saat logout:", error);
-      Alert.alert("Gagal", "Terjadi kesalahan saat logout.");
-    }
-  }
+  const handleLogout = () => {
+    Alert.alert(
+      "Konfirmasi Keluar",
+      "Apakah Anda yakin ingin keluar dari aplikasi?",
+      [
+        { text: "Batal", style: "cancel" },
+        {
+          text: "Ya, Keluar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await signOut(auth);
+              router.replace("/login");
+            } catch (error) {
+              console.error("Error saat logout:", error);
+              Alert.alert("Gagal", "Terjadi kesalahan saat logout.");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const MENU_LAYANAN = [
+    { id: 1, title: "Domisili", desc: "Ket. Domisili", icon: "home-map-marker", color: "#dbeafe", iconColor: "#2563eb" },
+    { id: 2, title: "Usaha", desc: "Ket. Usaha", icon: "briefcase", color: "#dcfce7", iconColor: "#16a34a" },
+    { id: 3, title: "SKTM", desc: "Ket. Tidak Mampu", icon: "hand-coin", color: "#fef3c7", iconColor: "#d97706" },
+    { id: 4, title: "Kematian", desc: "Ket. Kematian", icon: "coffin", color: "#fee2e2", iconColor: "#dc2626" },
+    { id: 5, title: "Kelahiran", desc: "Ket. Kelahiran", icon: "baby-carriage", color: "#e0e7ff", iconColor: "#4f46e5" },
+    { id: 6, title: "Lainnya", desc: "Lihat Semua", icon: "dots-grid", color: "#f3e8ff", iconColor: "#9333ea" },
+  ];
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.appName}>E-Surat Desa</Text>
-          <Text style={styles.welcome}>Halo, Warga!</Text>
-          <Text style={styles.subtitle}>Ajukan surat dengan mudah</Text>
+          <Text style={styles.appName}>Desaku</Text>
+          <Text style={styles.welcome}>Halo, {namaUser}!</Text>
+          <Text style={styles.subtitle}>Mau urus surat apa hari ini?</Text>
         </View>
         <TouchableOpacity
           style={styles.logoutButton}
           onPress={handleLogout}
-          activeOpacity={0.7}
+          activeOpacity={0.8}
         >
-          <Text style={styles.logoutText}>⏻</Text>
+          <MaterialCommunityIcons name="logout" size={24} color="#6200EE" />
         </TouchableOpacity>
       </View>
 
       <Card style={styles.announcementCard}>
-        <Card.Content>
-          <Title style={styles.announcementTitle}>📢 Pengumuman</Title>
-          <Paragraph style={styles.announcementText}>
-            Selamat datang di aplikasi E-Surat Desa. Anda sekarang bisa
-            mengajukan surat secara online tanpa perlu datang ke balai desa.
-          </Paragraph>
+        <Card.Content style={styles.announcementContent}>
+          <MaterialCommunityIcons name="bullhorn-outline" size={28} color="#92400e" style={{ marginRight: 12 }} />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.announcementTitle}>Pengumuman Desa</Text>
+            <Text style={styles.announcementText}>
+              Layanan e-Surat kini mendukung format dokumen PDF untuk pengajuan yang lebih mudah.
+            </Text>
+          </View>
         </Card.Content>
       </Card>
 
-      <Text style={styles.sectionTitle}>Layanan Surat</Text>
+      <Text style={styles.sectionTitle}>Layanan Administrasi</Text>
 
       <View style={styles.menuGrid}>
-        <TouchableOpacity
-          style={styles.menuItem}
-          onPress={() => router.push("/warga/pengajuan_surat")}
-        >
-          <View style={[styles.menuIconBox, { backgroundColor: "#dbeafe" }]}>
-            <Text style={styles.menuIcon}>📄</Text>
-          </View>
-          <Text style={styles.menuTitle}>Surat Domisili</Text>
-          <Text style={styles.menuDesc}>Keterangan Domisili</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={[styles.menuIconBox, { backgroundColor: "#dcfce7" }]}>
-            <Text style={styles.menuIcon}>💼</Text>
-          </View>
-          <Text style={styles.menuTitle}>Surat Usaha</Text>
-          <Text style={styles.menuDesc}>Keterangan Usaha</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={[styles.menuIconBox, { backgroundColor: "#fef3c7" }]}>
-            <Text style={styles.menuIcon}>🎓</Text>
-          </View>
-          <Text style={styles.menuTitle}>Surat Keterangan</Text>
-          <Text style={styles.menuDesc}>Umum</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.menuItem}>
-          <View style={[styles.menuIconBox, { backgroundColor: "#f3e8ff" }]}>
-            <Text style={styles.menuIcon}>📋</Text>
-          </View>
-          <Text style={styles.menuTitle}>Lihat Semua</Text>
-          <Text style={styles.menuDesc}>Jenis Surat</Text>
-        </TouchableOpacity>
+        {MENU_LAYANAN.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={styles.menuItem}
+            onPress={() => router.push("/warga/pengajuan_surat")}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.menuIconBox, { backgroundColor: item.color }]}>
+              <MaterialCommunityIcons name={item.icon as any} size={32} color={item.iconColor} />
+            </View>
+            <Text style={styles.menuTitle}>{item.title}</Text>
+            <Text style={styles.menuDesc}>{item.desc}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
-      <Text style={styles.sectionTitle}>Status Pengajuan</Text>
+      <Text style={styles.sectionTitle}>Pantau Pengajuan</Text>
 
       <Card style={styles.statusCard}>
         <Card.Content>
           <View style={styles.statusHeader}>
-            <Title style={styles.statusTitle}>Belum Ada Pengajuan</Title>
+            <MaterialCommunityIcons name="text-box-search-outline" size={24} color="#64748b" />
+            <Text style={styles.statusTitle}>Belum Ada Aktivitas</Text>
           </View>
-          <Paragraph style={styles.statusText}>
-            Anda belum memiliki pengajuan surat. Klik tombol di bawah untuk
-            mengajukan surat baru.
-          </Paragraph>
+          <Text style={styles.statusText}>
+            Anda belum memiliki pengajuan surat yang sedang diproses. Ajukan surat pertama Anda sekarang.
+          </Text>
           <TouchableOpacity
             style={styles.submitButton}
             onPress={() => router.push("/warga/pengajuan_surat")}
+            activeOpacity={0.8}
           >
-            <Text style={styles.submitButtonText}>+ Ajukan Surat Baru</Text>
+            <MaterialCommunityIcons name="plus-circle-outline" size={20} color="#ffffff" style={{ marginRight: 8 }} />
+            <Text style={styles.submitButtonText}>Ajukan Surat Baru</Text>
           </TouchableOpacity>
         </Card.Content>
       </Card>
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>E-Surat Desa v1.0</Text>
+        <Text style={styles.footerText}>Desaku e-Surat v1.0</Text>
         <Text style={styles.footerSubText}>© 2024 - Project PAPB</Text>
       </View>
     </ScrollView>
@@ -128,129 +151,143 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8fafc",
   },
   header: {
-    backgroundColor: "#0284c7",
+    backgroundColor: "#6200EE",
     paddingTop: 60,
-    paddingBottom: 24,
-    paddingHorizontal: 20,
+    paddingBottom: 30,
+    paddingHorizontal: 24,
     flexDirection: "row",
     alignItems: "center",
+    borderBottomLeftRadius: 24,
+    borderBottomRightRadius: 24,
+    elevation: 5,
   },
   appName: {
-    color: "#ffffff",
-    fontSize: 26,
-    fontWeight: "bold",
+    color: "#e0e7ff",
+    fontFamily: "Poppins_500Medium",
+    fontSize: 14,
+    letterSpacing: 1,
   },
   welcome: {
-    color: "#bae6fd",
-    fontSize: 16,
+    color: "#ffffff",
+    fontFamily: "Poppins_500Medium",
+    fontSize: 26,
     marginTop: 4,
   },
   subtitle: {
-    color: "#7dd3fc",
-    fontSize: 13,
+    color: "#e0e7ff",
+    fontFamily: "Poppins",
+    fontSize: 14,
     marginTop: 2,
   },
   logoutButton: {
     backgroundColor: "#ffffff",
-    width: 45,
-    height: 45,
-    borderRadius: 22,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 10,
-  },
-  logoutText: {
-    color: "#0284c7",
-    fontSize: 22,
-    fontWeight: "bold",
+    elevation: 3,
   },
   announcementCard: {
-    margin: 15,
+    marginHorizontal: 20,
+    marginTop: -20,
     backgroundColor: "#fef3c7",
-    borderLeftWidth: 4,
-    borderLeftColor: "#f59e0b",
+    borderRadius: 16,
+    elevation: 3,
+  },
+  announcementContent: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   announcementTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 15,
+    fontFamily: "Poppins_500Medium",
     color: "#92400e",
   },
   announcementText: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: "Poppins",
     color: "#a16207",
-    marginTop: 6,
-    lineHeight: 20,
+    marginTop: 2,
+    lineHeight: 18,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontFamily: "Poppins_500Medium",
     color: "#1e293b",
-    marginHorizontal: 20,
-    marginTop: 20,
-    marginBottom: 12,
+    marginHorizontal: 24,
+    marginTop: 24,
+    marginBottom: 16,
   },
   menuGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    paddingHorizontal: 15,
+    paddingHorizontal: 16,
   },
   menuItem: {
-    width: "50%",
-    padding: 15,
+    width: "33.33%",
+    padding: 8,
     alignItems: "center",
+    marginBottom: 16,
   },
   menuIconBox: {
-    width: 70,
-    height: 70,
-    borderRadius: 15,
+    width: 64,
+    height: 64,
+    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 10,
   },
-  menuIcon: {
-    fontSize: 32,
-  },
   menuTitle: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    fontFamily: "Poppins_500Medium",
     color: "#1e293b",
     textAlign: "center",
   },
   menuDesc: {
-    fontSize: 12,
-    color: "#94a3b8",
+    fontSize: 11,
+    fontFamily: "Poppins",
+    color: "#64748b",
     textAlign: "center",
     marginTop: 2,
   },
   statusCard: {
-    marginHorizontal: 15,
+    marginHorizontal: 20,
     marginBottom: 20,
     backgroundColor: "#ffffff",
+    borderRadius: 16,
     elevation: 2,
   },
   statusHeader: {
-    marginBottom: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
   statusTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
+    fontSize: 15,
+    fontFamily: "Poppins_500Medium",
     color: "#64748b",
+    marginLeft: 8,
   },
   statusText: {
     fontSize: 13,
+    fontFamily: "Poppins",
     color: "#94a3b8",
-    marginBottom: 15,
+    marginBottom: 16,
     lineHeight: 20,
   },
   submitButton: {
-    backgroundColor: "#0284c7",
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: "#6200EE",
+    padding: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    justifyContent: "center",
     alignItems: "center",
   },
   submitButtonText: {
     color: "#ffffff",
-    fontWeight: "bold",
+    fontFamily: "Poppins_500Medium",
     fontSize: 14,
   },
   footer: {
@@ -259,10 +296,12 @@ const styles = StyleSheet.create({
   },
   footerText: {
     color: "#64748b",
-    fontWeight: "600",
+    fontFamily: "Poppins_500Medium",
+    fontSize: 13,
   },
   footerSubText: {
     color: "#cbd5e1",
+    fontFamily: "Poppins",
     fontSize: 12,
     marginTop: 2,
   },

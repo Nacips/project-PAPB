@@ -1,6 +1,9 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+// @ts-ignore: Mengabaikan error bawaan typing TypeScript pada Firebase
+import { initializeAuth, getReactNativePersistence } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDMXDlOLB4K48Ul5aKZpOSUVZO90MtbFkM",
@@ -13,6 +16,10 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 
-export const auth = getAuth(app);
+// Inisialisasi Auth dengan AsyncStorage agar sesi login tersimpan
+export const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(AsyncStorage),
+});
+
 export const db = getFirestore(app);
 export default app;

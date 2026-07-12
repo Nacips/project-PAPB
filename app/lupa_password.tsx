@@ -1,12 +1,24 @@
-import { useState } from "react";
-import { View, StyleSheet, Alert, KeyboardAvoidingView, Platform } from "react-native";
-import { Text, TextInput, Button, Card } from "react-native-paper";
+import { useState, useEffect, useRef } from "react";
+import { 
+  View, StyleSheet, Alert, KeyboardAvoidingView, Platform, 
+  ImageBackground, Text, TextInput, TouchableOpacity, ScrollView, Animated
+} from "react-native";
 import { router } from "expo-router";
 import { forgotPassword } from "../services/authService";
+import { Zocial } from "@expo/vector-icons";
 
 export default function LupaPassword() {
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   const handleResetPassword = async () => {
     if (!email.trim()) {
@@ -23,76 +35,96 @@ export default function LupaPassword() {
         [{ text: "OK", onPress: () => router.replace("/login") }]
       );
     } catch (error: any) {
-      console.error(error);
       if (error.code === "auth/user-not-found") {
         Alert.alert("Gagal", "Email tidak terdaftar di sistem kami.");
-      } else if (error.code === "auth/invalid-email") {
-        Alert.alert("Gagal", "Format email tidak valid.");
       } else {
-        Alert.alert("Gagal", "Terjadi kesalahan. Pastikan koneksi internet Anda stabil.");
-      }
+        Alert.alert("Gagal", "Format email tidak valid atau terjadi kesalahan.");
+      }Zocial
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
-      <View style={styles.content}>
-        <Text style={styles.title} variant="displaySmall">Reset Password</Text>
-        <Text style={styles.subtitle} variant="bodyMedium">
-          Masukkan email yang terdaftar. Kami akan mengirimkan tautan untuk membuat password baru.
-        </Text>
+    <View style={styles.container}>
+      <ImageBackground source={require("../assets/images/bg-2.jpeg")} style={styles.bgImage}>
+        <View style={styles.overlay}>
+          <KeyboardAvoidingView 
+            style={{ flex: 1 }} 
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+          >
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+              <Animated.View style={{ opacity: fadeAnim, width: "100%" }}>
+                
+                <View style={styles.header}>
+                  <Text style={styles.title}>Lupa Kata Sandi?</Text>
+                  <Text style={styles.subtitle}>
+                    Masukkan email terdaftar Anda. Kami akan mengirimkan tautan pemulihan sandi.
+                  </Text>
+                </View>
 
-        <Card style={styles.card}>
-          <Card.Content>
-            <TextInput
-              label="Email"
-              mode="outlined"
-              style={styles.input}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              value={email}
-              onChangeText={setEmail}
-              left={<TextInput.Icon icon="email" />}
-            />
+                <View style={styles.formContainer}>
+                  <View style={styles.inputWrapper}>
+                    <Text style={styles.label}>Email</Text>
+                    <TextInput
+                      style={styles.input}
+                      placeholder="Masukkan Email Anda"
+                      placeholderTextColor="#8E8E93"
+                      keyboardType="email-address"
+                      autoCapitalize="none"
+                      value={email}
+                      onChangeText={setEmail}
+                    />
+                  </View>
 
-            <Button
-              mode="contained"
-              onPress={handleResetPassword}
-              loading={loading}
-              disabled={loading}
-              style={styles.button}
-              buttonColor="#6200ee"
-            >
-              Kirim Tautan Reset
-            </Button>
-            
-            <Button
-              mode="text"
-              onPress={() => router.back()}
-              style={styles.backButton}
-              textColor="#64748b"
-            >
-              Kembali ke Login
-            </Button>
-          </Card.Content>
-        </Card>
-      </View>
-    </KeyboardAvoidingView>
+                  <TouchableOpacity 
+                    style={[styles.btn, loading && { opacity: 0.7 }]} 
+                    onPress={handleResetPassword} 
+                    disabled={loading}
+                    activeOpacity={0.8}
+                  >
+                    <Text style={styles.btnText}>{loading ? "Mengirim..." : "Kirim Tautan"}</Text>
+                  </TouchableOpacity>
+
+                  <View style={styles.loginContainer}>
+                    <TouchableOpacity onPress={() => router.replace("/login")}>
+                      <Text style={styles.logLink}>Kembali ke Login</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+              </Animated.View>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </View>
+      </ImageBackground>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f8fafc" },
-  content: { flex: 1, justifyContent: "center", padding: 24 },
-  title: { fontWeight: "bold", textAlign: "center", marginBottom: 8, color: "#6200ee" },
-  subtitle: { textAlign: "center", marginBottom: 32, color: "#64748b", paddingHorizontal: 10 },
-  card: { backgroundColor: "#ffffff", elevation: 2 },
-  input: { marginBottom: 16, backgroundColor: "#ffffff" },
-  button: { marginTop: 8, paddingVertical: 6, borderRadius: 8 },
-  backButton: { marginTop: 16 },
+  container: { flex: 1, backgroundColor: "#0A0A12" },
+  bgImage: { flex: 1, width: "100%", height: "100%" },
+  overlay: { flex: 1, backgroundColor: "rgba(10, 10, 18, 0.85)" },
+  scrollContent: { flexGrow: 1, justifyContent: "center", paddingHorizontal: 30, paddingVertical: 40 },
+  
+  header: { marginBottom: 40, alignItems: "center" },
+  title: { fontSize: 28, fontFamily: "Poppins_500Medium", color: "#ffffff", marginBottom: 12 },
+  subtitle: { fontSize: 14, fontFamily: "Poppins", color: "#8E8E93", textAlign: "center", lineHeight: 22 },
+  
+  formContainer: { width: "100%" },
+  inputWrapper: { marginBottom: 30 },
+  label: { color: "#D1D1D6", fontFamily: "Poppins", fontSize: 13, marginBottom: 8, marginLeft: 4 },
+  input: {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    borderWidth: 1, borderColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 16, paddingHorizontal: 16, paddingVertical: 16,
+    color: "#ffffff", fontFamily: "Poppins",
+  },
+  
+  btn: { backgroundColor: "#6200EE", paddingVertical: 16, borderRadius: 16, alignItems: "center" },
+  btnText: { color: "#ffffff", fontFamily: "Poppins_500Medium", fontSize: 16 },
+  
+  loginContainer: { flexDirection: "row", justifyContent: "center", marginTop: 30 },
+  logLink: { color: "#ffffff", fontFamily: "Poppins_500Medium", fontSize: 14, textDecorationLine: "underline" },
 });
